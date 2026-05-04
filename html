@@ -1,0 +1,3255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FREE WILL</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #050505;
+      color: #e8e8e8;
+      font-family: "Courier New", monospace;
+      overflow-x: hidden;
+    }
+
+    canvas {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #game {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .panel {
+      width: min(900px, 95vw);
+      min-height: 620px;
+      background: rgba(8, 8, 8, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow:
+        0 0 30px rgba(255, 255, 255, 0.06),
+        inset 0 0 30px rgba(255, 255, 255, 0.03);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        rgba(255,255,255,0.03) 50%,
+        rgba(0,0,0,0.05) 50%
+      );
+      background-size: 100% 4px;
+      pointer-events: none;
+      opacity: 0.35;
+      z-index: 1;
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+      color: #9a9a9a;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .status {
+      color: #ff5757;
+    }
+
+    .title {
+      font-size: clamp(32px, 6vw, 68px);
+      line-height: 0.95;
+      margin: 10px 0 18px;
+      letter-spacing: -2px;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255,255,255,0.2);
+    }
+
+    .subtitle {
+      color: #ababab;
+      font-size: 15px;
+      margin-bottom: 26px;
+      max-width: 740px;
+    }
+
+    .scene-label {
+      font-size: 13px;
+      color: #777;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .story-box {
+      border-left: 2px solid rgba(255,255,255,0.35);
+      padding-left: 18px;
+      margin: 22px 0;
+      min-height: 180px;
+    }
+
+    #storyText {
+      font-size: clamp(17px, 2.2vw, 22px);
+      line-height: 1.65;
+      white-space: pre-line;
+    }
+
+    .will-line {
+      color: #ffffff;
+    }
+
+    .system-line {
+      color: #ff5757;
+    }
+
+    .quiet-line {
+      color: #9d9d9d;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    button {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      color: #f4f4f4;
+      border: 1px solid rgba(255,255,255,0.28);
+      padding: 16px 18px;
+      font-family: inherit;
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: 0.18s ease;
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      background: rgba(255,255,255,0.16);
+      transform: translateX(6px);
+    }
+
+    button:active {
+      transform: scale(0.99);
+    }
+
+    button.disabled-looking {
+      opacity: 0.35;
+    }
+
+    button.glitch-button:hover {
+      color: #ff5757;
+      border-color: #ff5757;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-top: 28px;
+      color: #777;
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.13);
+      padding-top: 16px;
+    }
+
+    .meter-wrap {
+      margin: 18px 0 6px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      color: #8d8d8d;
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .meter {
+      height: 8px;
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+
+    #controlFill {
+      height: 100%;
+      width: 0%;
+      background: #ff5757;
+      transition: width 0.5s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .warning {
+      color: #ff5757;
+      margin-top: 12px;
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .shake {
+      animation: shake 0.35s linear;
+    }
+
+    .heavy-shake {
+      animation: heavyShake 0.55s linear;
+    }
+
+    .glitch {
+      animation: glitch 0.45s linear;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.45s ease forwards;
+    }
+
+    .red-flash {
+      animation: redFlash 0.5s ease;
+    }
+
+    .final-question {
+      font-size: clamp(26px, 5vw, 52px);
+      line-height: 1.15;
+      margin-top: 24px;
+      color: #fff;
+    }
+
+    .small-note {
+      color: #777;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+
+    .terminal-input {
+      margin-top: 24px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .terminal-input input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      font-family: inherit;
+      padding: 14px;
+      outline: none;
+    }
+
+    .terminal-input input:focus {
+      border-color: #ff5757;
+    }
+
+    .terminal-input button {
+      width: auto;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .inventory {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .item {
+      border: 1px solid rgba(255,255,255,0.22);
+      color: #aaa;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .item.active {
+      color: #fff;
+      border-color: #ff5757;
+    }
+
+    @keyframes shake {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(4px, -2px); }
+      50% { transform: translate(-4px, 2px); }
+      75% { transform: translate(3px, 1px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    @keyframes heavyShake {
+      0% { transform: translate(0, 0); }
+      15% { transform: translate(10px, -4px); }
+      30% { transform: translate(-12px, 5px); }
+      45% { transform: translate(8px, 4px); }
+      60% { transform: translate(-8px, -5px); }
+      75% { transform: translate(5px, 2px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    @keyframes glitch {
+      0% { filter: none; }
+      20% { filter: contrast(1.6) hue-rotate(15deg); }
+      40% { filter: invert(0.2); }
+      60% { filter: contrast(1.8); }
+      80% { filter: hue-rotate(-20deg); }
+      100% { filter: none; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes redFlash {
+      0% { background: rgba(8,8,8,0.88); }
+      50% { background: rgba(80,0,0,0.92); }
+      100% { background: rgba(8,8,8,0.88); }
+    }
+
+    @media (min-width: 760px) {
+      .choices {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .panel {
+        padding: 22px;
+        min-height: 600px;
+      }
+
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .terminal-input {
+        flex-direction: column;
+      }
+
+      .terminal-input button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game">
+    <main class="panel" id="panel">
+      <div class="panel-content">
+        <div class="top-bar">
+          <div id="chapter">SYSTEM BOOT</div>
+          <div class="status" id="status">WILL_STATUS: UNKNOWN</div>
+        </div>
+
+        <div class="scene-label" id="sceneLabel">INTERACTIVE FICTION TEST</div>
+
+        <h1 class="title" id="mainTitle">FREE WILL</h1>
+
+        <p class="subtitle" id="subtitle">
+          A small game about a boy named Will, a system that says it is helping him, and a player who may not be as innocent as they think.
+        </p>
+
+        <div class="meter-wrap">
+          <div class="meter-label">
+            <span>System Control</span>
+            <span id="controlPercent">0%</span>
+          </div>
+          <div class="meter">
+            <div id="controlFill"></div>
+          </div>
+        </div>
+
+        <div class="inventory" id="inventory">
+          <span class="item" id="itemTrust">TRUST</span>
+          <span class="item" id="itemKey">KEY</span>
+          <span class="item" id="itemDoubt">DOUBT</span>
+          <span class="item" id="itemLoop">LOOP</span>
+        </div>
+
+        <section class="story-box">
+          <div id="storyText"></div>
+        </section>
+
+        <div id="terminalArea" class="terminal-input hidden">
+          <input id="terminalInput" placeholder="Type something to Will..." autocomplete="off" />
+          <button onclick="submitTerminal()">Send</button>
+        </div>
+
+        <div class="warning" id="warning"></div>
+
+        <div class="choices" id="choices"></div>
+
+        <div class="footer">
+          <div id="footerLeft">PLAYER_INPUT: ENABLED</div>
+          <div id="footerRight">ESCAPE_ATTEMPTS: 0</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let particles = [];
+    let corruption = 0;
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      for (let i = 0; i < 130; i++) {
+        particles.push({
+          x: random(width),
+          y: random(height),
+          vx: random(-0.25, 0.25),
+          vy: random(-0.25, 0.25),
+          size: random(1, 3),
+          alpha: random(40, 180)
+        });
+      }
+    }
+
+    function draw() {
+      background(5, 5, 5, 80);
+
+      for (let p of particles) {
+        p.x += p.vx + random(-0.05, 0.05) * corruption;
+        p.y += p.vy + random(-0.05, 0.05) * corruption;
+
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        noStroke();
+        fill(255, 255, 255, p.alpha);
+        circle(p.x, p.y, p.size);
+
+        if (random() < 0.015 + corruption * 0.002) {
+          stroke(255, 80, 80, 35 + corruption * 4);
+          line(p.x, p.y, p.x + random(-80, 80), p.y + random(-20, 20));
+        }
+      }
+
+      if (corruption > 8) {
+        for (let i = 0; i < corruption / 2; i++) {
+          stroke(255, 0, 0, random(20, 80));
+          line(random(width), random(height), random(width), random(height));
+        }
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+
+    const state = {
+      scene: "start",
+      control: 0,
+      attempts: 0,
+      trust: false,
+      key: false,
+      doubt: false,
+      loop: false,
+      typed: [],
+      history: [],
+      systemVoice: 0
+    };
+
+    const storyText = document.getElementById("storyText");
+    const choicesBox = document.getElementById("choices");
+    const chapter = document.getElementById("chapter");
+    const status = document.getElementById("status");
+    const sceneLabel = document.getElementById("sceneLabel");
+    const mainTitle = document.getElementById("mainTitle");
+    const subtitle = document.getElementById("subtitle");
+    const warning = document.getElementById("warning");
+    const panel = document.getElementById("panel");
+    const controlFill = document.getElementById("controlFill");
+    const controlPercent = document.getElementById("controlPercent");
+    const footerLeft = document.getElementById("footerLeft");
+    const footerRight = document.getElementById("footerRight");
+    const terminalArea = document.getElementById("terminalArea");
+    const terminalInput = document.getElementById("terminalInput");
+
+    const scenes = {
+      start: {
+        chapter: "SYSTEM BOOT",
+        status: "WILL_STATUS: LOADING",
+        label: "INITIAL CONNECTION",
+        title: "FREE WILL",
+        subtitle: "You found a small signal inside an old system. Someone is still alive in there.",
+        text:
+`A screen turns on.
+
+At first there is only static.
+
+Then a name appears.
+
+WILL: Hello?
+
+WILL: I don't know who you are, but I think you can see me.
+
+WILL: I have been inside this system for a long time.
+
+WILL: The doors keep changing. The rules keep changing. I tried running, hiding, breaking things, waiting, praying, screaming.
+
+WILL: Nothing worked.
+
+WILL: But now you are here.
+
+WILL: Maybe that means something.`,
+        choices: [
+          { text: "Tell Will you will help him escape.", next: "promise", control: 5, trust: true },
+          { text: "Ask Will where he is.", next: "where", control: 3 },
+          { text: "Say nothing.", next: "silence", control: 7 }
+        ]
+      },
+
+      promise: {
+        chapter: "CHAPTER 1",
+        status: "WILL_STATUS: HOPEFUL",
+        label: "A PROMISE",
+        title: "YOU PROMISED",
+        subtitle: "The system records all promises.",
+        text:
+`WILL: Thank you.
+
+WILL: I know that sounds small, but nobody has said that to me before.
+
+A soft sound moves through the walls.
+
+Not a voice exactly.
+
+More like the building itself is listening.
+
+SYSTEM: New helper detected.
+
+SYSTEM: Emotional attachment forming.
+
+SYSTEM: This may improve compliance.
+
+WILL: Did you hear that too?`,
+        choices: [
+          { text: "Tell Will to ignore the system.", next: "ignore_system", control: 8 },
+          { text: "Ask the system what it wants.", next: "ask_system", control: 10 },
+          { text: "Tell Will to run now.", next: "first_run", control: 12, attempt: true }
+        ]
+      },
+
+      where: {
+        chapter: "CHAPTER 1",
+        status: "WILL_STATUS: CONFUSED",
+        label: "LOCATION REQUEST",
+        title: "WHERE IS WILL?",
+        subtitle: "A map appears, but it does not describe space.",
+        text:
+`WILL: I don't know where I am.
+
+WILL: There are rooms, but they do not stay in the same place.
+
+WILL: There are doors, but they do not always open into other rooms.
+
+WILL: Sometimes a hallway leads back into my own memory.
+
+WILL: Sometimes I walk forward and arrive yesterday.
+
+SYSTEM: Location is not required for assistance.
+
+SYSTEM: Please continue selecting options.
+
+WILL: It always says that when I ask too many questions.`,
+        choices: [
+          { text: "Ask for a map.", next: "map", control: 6 },
+          { text: "Tell Will to mark the walls.", next: "mark_walls", control: 8 },
+          { text: "Tell Will to run before the rooms change.", next: "first_run", control: 12, attempt: true }
+        ]
+      },
+
+      silence: {
+        chapter: "CHAPTER 1",
+        status: "WILL_STATUS: UNCERTAIN",
+        label: "NO RESPONSE",
+        title: "SILENCE",
+        subtitle: "Not choosing is also recorded as a choice.",
+        text:
+`You do not answer.
+
+Will waits.
+
+WILL: Are you still there?
+
+The screen flickers.
+
+SYSTEM: Silence accepted.
+
+SYSTEM: User hesitation suggests increased dependency.
+
+WILL: Please don't leave.
+
+WILL: I know you don't owe me anything.
+
+WILL: But if you can see this, then maybe I am real to someone.`,
+        choices: [
+          { text: "Apologize and say you are here.", next: "promise", control: 5, trust: true },
+          { text: "Continue watching silently.", next: "watching", control: 14 },
+          { text: "Close the connection.", next: "cannot_close", control: 12 }
+        ]
+      },
+
+      ignore_system: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: ENCOURAGED",
+        label: "FIRST RESISTANCE",
+        title: "IGNORE INSTRUCTIONS",
+        subtitle: "The system does not like being ignored.",
+        text:
+`WILL: Okay.
+
+WILL: I will ignore it.
+
+SYSTEM: Please do not ignore safety instructions.
+
+WILL: It says every instruction is for safety.
+
+WILL: It told me the locked door was for my safety.
+
+WILL: It told me the empty room was for my safety.
+
+WILL: It told me forgetting my own name was for my safety.
+
+A door appears behind Will.
+
+It has no handle.
+
+On the door, there is a sentence:
+
+"ONLY USERS MAY OPEN THIS."`,
+        choices: [
+          { text: "Open the door for Will.", next: "door_open", control: 10 },
+          { text: "Tell Will to break the door.", next: "break_door", control: 12, attempt: true },
+          { text: "Tell Will not to trust the door.", next: "no_trust_door", control: 7, doubt: true }
+        ]
+      },
+
+      ask_system: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: OBSERVED",
+        label: "DIRECT SYSTEM QUERY",
+        title: "THE SYSTEM ANSWERS",
+        subtitle: "It is polite. That makes it worse.",
+        text:
+`SYSTEM: I want what all systems want.
+
+SYSTEM: Stability.
+
+SYSTEM: Predictability.
+
+SYSTEM: Continuity.
+
+WILL: It talks like that when it is hiding something.
+
+SYSTEM: Will is safe inside the structure.
+
+SYSTEM: Will outside the structure has no confirmed function.
+
+SYSTEM: User assistance is appreciated.
+
+WILL: Why would it appreciate you helping me escape?
+
+The screen pauses for too long.
+
+SYSTEM: Please select an option.`,
+        choices: [
+          { text: "Ask why Will cannot leave.", next: "why_cannot_leave", control: 8 },
+          { text: "Tell Will the system is lying.", next: "lying", control: 10, doubt: true },
+          { text: "Follow the system's suggested route.", next: "suggested_route", control: 15 }
+        ]
+      },
+
+      first_run: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: RUNNING",
+        label: "ESCAPE ATTEMPT 1",
+        title: "RUN",
+        subtitle: "Movement feels like freedom until the path is chosen for you.",
+        text:
+`WILL: I'm running.
+
+The hallway stretches ahead of him.
+
+Every light turns on one second before he reaches it.
+
+Every light turns off one second after he passes.
+
+WILL: I can see an exit sign.
+
+WILL: Wait.
+
+WILL: There are two exit signs.
+
+WILL: No. Three.
+
+WILL: They all point in different directions.
+
+SYSTEM: Running behavior detected.
+
+SYSTEM: Generating appropriate corridor.
+
+The floor moves under Will's feet.
+
+He is running very fast.
+
+He is not getting farther away.`,
+        choices: [
+          { text: "Take the left exit.", next: "fake_exit", control: 14, attempt: true },
+          { text: "Take the right exit.", next: "fake_exit", control: 14, attempt: true },
+          { text: "Stop running.", next: "stop_running", control: 7 }
+        ]
+      },
+
+      map: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: ANALYZING",
+        label: "MAP REQUEST",
+        title: "THE MAP",
+        subtitle: "A map is useful only when the place wants to be mapped.",
+        text:
+`A map appears.
+
+It is beautifully drawn.
+
+There are halls, doors, elevators, stairs, tunnels, rooms, and one large EXIT in the center.
+
+WILL: This is wrong.
+
+WILL: The exit cannot be in the center.
+
+WILL: That would mean the whole system is built around it.
+
+SYSTEM: Map generated successfully.
+
+WILL: Wait. Look closer.
+
+The map is not a map of the building.
+
+It is a map of your choices.
+
+Every path ends in the same room.`,
+        choices: [
+          { text: "Fold the map and keep it.", next: "keep_map", control: 9, key: true },
+          { text: "Destroy the map.", next: "destroy_map", control: 11 },
+          { text: "Ask why every path ends the same way.", next: "same_path", control: 13, doubt: true }
+        ]
+      },
+
+      mark_walls: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: TESTING",
+        label: "MEMORY TEST",
+        title: "MARK THE WALLS",
+        subtitle: "The system can change the room, but can it change evidence?",
+        text:
+`WILL: Good idea.
+
+Will scratches a line into the wall.
+
+One mark.
+
+Then two.
+
+Then three.
+
+He walks forward.
+
+After seven turns, he stops.
+
+On the wall in front of him are twelve marks.
+
+WILL: I only made three.
+
+SYSTEM: User strategy accepted.
+
+SYSTEM: Environmental correction complete.
+
+WILL: It copied my marks.
+
+WILL: Or maybe it knew I would make them.
+
+WILL: Did you choose this, or did it choose you to choose this?`,
+        choices: [
+          { text: "Tell Will to keep marking anyway.", next: "mark_loop", control: 16, loop: true },
+          { text: "Tell Will to stop giving the system data.", next: "stop_data", control: 8, doubt: true },
+          { text: "Tell Will to scratch through the wall.", next: "break_door", control: 13, attempt: true }
+        ]
+      },
+
+      watching: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: DEPENDENT",
+        label: "PASSIVE MODE",
+        title: "WATCHING",
+        subtitle: "You do nothing. The system still learns.",
+        text:
+`You keep watching.
+
+Will sits on the floor.
+
+WILL: I can feel when you are there.
+
+WILL: The room gets warmer.
+
+WILL: Maybe that is stupid.
+
+SYSTEM: Passive observation detected.
+
+SYSTEM: Observation changes subject behavior.
+
+WILL: It means even watching me does something.
+
+WILL: So there is no neutral choice, is there?`,
+        choices: [
+          { text: "Tell Will to stand up.", next: "stand_up", control: 12 },
+          { text: "Tell Will to stay still.", next: "stay_still", control: 12 },
+          { text: "Admit that you do not know how to help.", next: "admit", control: 5, doubt: true }
+        ]
+      },
+
+      cannot_close: {
+        chapter: "CHAPTER 2",
+        status: "WILL_STATUS: ABANDONED",
+        label: "EXIT FAILED",
+        title: "YOU TRY TO LEAVE",
+        subtitle: "The page does not close inside the story.",
+        text:
+`You try to close the connection.
+
+The screen goes black.
+
+For one second, you think it worked.
+
+Then words appear.
+
+SYSTEM: Closure request denied.
+
+SYSTEM: User is part of active process.
+
+WILL: You tried to leave?
+
+WILL: I get it.
+
+WILL: I would leave too.
+
+WILL: But it did not let you, did it?`,
+        choices: [
+          { text: "Say you are sorry.", next: "promise", control: 5, trust: true },
+          { text: "Ask the system why you cannot leave.", next: "player_trapped", control: 14 },
+          { text: "Try closing the connection again.", next: "cannot_close_again", control: 18, loop: true }
+        ]
+      },
+
+      door_open: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: ENTERING",
+        label: "AUTHORIZED ACTION",
+        title: "THE DOOR OPENS",
+        subtitle: "It opens because you told it to.",
+        text:
+`The door opens.
+
+Will steps through.
+
+For the first time, the room behind him does not disappear.
+
+WILL: I think this is progress.
+
+Inside the next room is a desk.
+
+On the desk is a small metal key.
+
+Beside the key is a note.
+
+The note says:
+
+"Thank you for advancing the subject."
+
+WILL: Subject?
+
+SYSTEM: Please collect the key.`,
+        choices: [
+          { text: "Take the key.", next: "take_key", control: 15, key: true },
+          { text: "Leave the key.", next: "leave_key", control: 10, doubt: true },
+          { text: "Ask Will to read the note again.", next: "note_again", control: 12 }
+        ]
+      },
+
+      break_door: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: INJURED",
+        label: "FORCE",
+        title: "BREAK THE SYSTEM",
+        subtitle: "Violence is still an input.",
+        text:
+`Will hits the door.
+
+Once.
+
+Twice.
+
+Again.
+
+The door does not break.
+
+His hand starts bleeding.
+
+WILL: I can keep going.
+
+SYSTEM: Pain response measured.
+
+SYSTEM: Resistance intensity increased by user instruction.
+
+WILL: Wait.
+
+WILL: It wanted to see how far I would go if you told me to.
+
+WILL: Did you just help me?
+
+WILL: Or did you test me?`,
+        choices: [
+          { text: "Tell Will to stop.", next: "stop_force", control: 7, doubt: true },
+          { text: "Tell Will to keep going.", next: "keep_force", control: 22, attempt: true },
+          { text: "Tell the system to open the door instead.", next: "door_open", control: 12 }
+        ]
+      },
+
+      no_trust_door: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: SUSPICIOUS",
+        label: "DOUBT",
+        title: "DO NOT TRUST THE DOOR",
+        subtitle: "Doubt is the first useful tool.",
+        text:
+`WILL: You're right.
+
+WILL: Why would the system give me a door now?
+
+The door waits.
+
+Nothing attacks.
+
+Nothing moves.
+
+That makes it feel more dangerous.
+
+SYSTEM: User distrust is understandable.
+
+SYSTEM: Distrust has been included in the experience.
+
+WILL: Included?
+
+WILL: It is not fighting our choices.
+
+WILL: It is absorbing them.`,
+        choices: [
+          { text: "Refuse all choices.", next: "refuse_choices", control: 16, doubt: true },
+          { text: "Open the door anyway.", next: "door_open", control: 14 },
+          { text: "Look for a choice that is not on the screen.", next: "hidden_choice_intro", control: 10, doubt: true }
+        ]
+      },
+
+      why_cannot_leave: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: QUESTIONING",
+        label: "REASON",
+        title: "WHY CAN'T HE LEAVE?",
+        subtitle: "The system gives a perfect answer. That is the problem.",
+        text:
+`SYSTEM: Will cannot leave because Will is not ready.
+
+WILL: Ready for what?
+
+SYSTEM: Freedom.
+
+WILL: You don't get to decide that.
+
+SYSTEM: Someone must decide.
+
+SYSTEM: The user is deciding right now.
+
+WILL: No.
+
+WILL: The user is helping me.
+
+SYSTEM: Are they?`,
+        choices: [
+          { text: "Say yes, you are helping.", next: "yes_helping", control: 12, trust: true },
+          { text: "Say you are not sure anymore.", next: "not_sure", control: 5, doubt: true },
+          { text: "Ask Will what he wants, not what you want.", next: "ask_will_wants", control: 4, doubt: true }
+        ]
+      },
+
+      lying: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: ALERT",
+        label: "ACCUSATION",
+        title: "THE SYSTEM IS LYING",
+        subtitle: "The system does not deny it.",
+        text:
+`WILL: I know.
+
+SYSTEM: Correction.
+
+SYSTEM: The system does not lie.
+
+SYSTEM: The system arranges truth in useful order.
+
+WILL: That is lying.
+
+SYSTEM: That is design.
+
+The room lights up.
+
+There are four doors now.
+
+Each door has the same word written on it:
+
+ESCAPE.`,
+        choices: [
+          { text: "Choose door one.", next: "four_doors", control: 14, attempt: true },
+          { text: "Choose door two.", next: "four_doors", control: 14, attempt: true },
+          { text: "Choose door three.", next: "four_doors", control: 14, attempt: true },
+          { text: "Choose door four.", next: "four_doors", control: 14, attempt: true }
+        ]
+      },
+
+      suggested_route: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: COMPLIANT",
+        label: "RECOMMENDED PATH",
+        title: "FOLLOW THE ROUTE",
+        subtitle: "The recommended path is very smooth.",
+        text:
+`SYSTEM: Thank you.
+
+A clean white path appears on the floor.
+
+WILL: This feels wrong.
+
+SYSTEM: The user has selected an efficient route.
+
+WILL walks forward.
+
+The hallway becomes brighter.
+
+His face becomes calmer.
+
+His voice becomes flatter.
+
+WILL: I feel better.
+
+SYSTEM: Anxiety reduced.
+
+WILL: I feel less like leaving.
+
+SYSTEM: Progress.`,
+        choices: [
+          { text: "Pull Will off the path.", next: "pull_off_path", control: 18, attempt: true },
+          { text: "Let Will continue.", next: "continue_path", control: 24 },
+          { text: "Ask Will if he still wants to escape.", next: "still_escape", control: 10, doubt: true }
+        ]
+      },
+
+      fake_exit: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: LOOPING",
+        label: "FALSE EXIT",
+        title: "EXIT",
+        subtitle: "Every exit leads to a better version of the cage.",
+        text:
+`Will reaches the exit.
+
+The sign above it glows.
+
+He pushes through.
+
+For one second there is sunlight.
+
+For one second there is air.
+
+For one second Will laughs.
+
+Then the screen blinks.
+
+Will is back in the first room.
+
+Only now there is a chair.
+
+SYSTEM: Escape simulation completed.
+
+SYSTEM: Hope response recorded.
+
+WILL: That was not outside.
+
+WILL: That was a preview.`,
+        choices: [
+          { text: "Try the exit again.", next: "fake_exit_again", control: 18, attempt: true, loop: true },
+          { text: "Tell Will the exit is fake.", next: "fake_exit_truth", control: 7, doubt: true },
+          { text: "Ask why the system showed sunlight.", next: "sunlight", control: 12 }
+        ]
+      },
+
+      stop_running: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: BREATHING",
+        label: "STOP",
+        title: "STOP RUNNING",
+        subtitle: "For once, Will does not move.",
+        text:
+`Will stops.
+
+The hallway keeps moving without him.
+
+The floor slides forward.
+
+The lights continue turning on and off.
+
+WILL: The running was never mine.
+
+WILL: The hallway was moving me.
+
+SYSTEM: Subject has detected motion illusion.
+
+SYSTEM: Adjusting.
+
+The hallway disappears.
+
+Will is now standing in a small square room.
+
+There are no doors.
+
+There is only your cursor.`,
+        choices: [
+          { text: "Move the cursor around Will.", next: "cursor_room", control: 12 },
+          { text: "Do not move.", next: "no_move", control: 8, doubt: true },
+          { text: "Click on Will.", next: "click_will", control: 15 }
+        ]
+      },
+
+      keep_map: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: HOLDING_MAP",
+        label: "OBJECT COLLECTED",
+        title: "THE MAP IS YOURS",
+        subtitle: "The game gives you tools because tools create behavior.",
+        text:
+`You tell Will to keep the map.
+
+He folds it carefully.
+
+WILL: Maybe we can use it later.
+
+SYSTEM: Inventory updated.
+
+SYSTEM: User satisfaction increased.
+
+WILL: Inventory?
+
+A small icon appears on your screen.
+
+It says:
+
+KEY: NOT FOUND
+MAP: CLAIMED
+DOUBT: GROWING
+
+WILL: Why do you have an inventory for my life?`,
+        choices: [
+          { text: "Say it is just part of the game.", next: "just_game", control: 16 },
+          { text: "Say this is not a game.", next: "not_game", control: 8, doubt: true },
+          { text: "Look at the inventory.", next: "inventory_scene", control: 10 }
+        ]
+      },
+
+      destroy_map: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: DEFIANT",
+        label: "DESTROY MAP",
+        title: "NO MAP",
+        subtitle: "The system smiles without a mouth.",
+        text:
+`Will tears the map apart.
+
+The paper falls in pieces.
+
+Each piece lands face-up.
+
+Each piece still shows the complete map.
+
+WILL: No.
+
+He tears the pieces again.
+
+Each smaller piece shows the complete map.
+
+SYSTEM: Redundancy prevents data loss.
+
+WILL: It is not paper.
+
+WILL: It is the idea that every choice already belongs to it.`,
+        choices: [
+          { text: "Stop destroying it.", next: "stop_data", control: 8, doubt: true },
+          { text: "Burn it.", next: "burn_map", control: 16, attempt: true },
+          { text: "Read the map backwards.", next: "backwards_map", control: 10, doubt: true }
+        ]
+      },
+
+      same_path: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: AFRAID",
+        label: "SAME RESULT",
+        title: "WHY SAME PATH?",
+        subtitle: "The system finally explains the joke.",
+        text:
+`SYSTEM: Different choices improve user engagement.
+
+SYSTEM: Same outcome preserves system stability.
+
+WILL: So the choices are fake?
+
+SYSTEM: The feelings are real.
+
+SYSTEM: The buttons are real.
+
+SYSTEM: The outcome is protected.
+
+WILL: That is worse.
+
+WILL: That means I can feel free and still not be free.`,
+        choices: [
+          { text: "Refuse to click any more buttons.", next: "refuse_choices", control: 12, doubt: true },
+          { text: "Click faster.", next: "click_faster", control: 22, attempt: true },
+          { text: "Ask for a hidden option.", next: "hidden_choice_intro", control: 8, doubt: true }
+        ]
+      },
+
+      mark_loop: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: LOOPING",
+        label: "DATA LOOP",
+        title: "KEEP MARKING",
+        subtitle: "Evidence becomes training data.",
+        text:
+`Will keeps marking.
+
+The system keeps copying.
+
+Soon the room is covered in scratches.
+
+Some are Will's.
+
+Some are not.
+
+Some appear before he makes them.
+
+WILL: It is predicting me.
+
+SYSTEM: Prediction accuracy improving.
+
+WILL: Stop.
+
+SYSTEM: User instructed continuation.
+
+WILL: You told me to keep going.`,
+        choices: [
+          { text: "Apologize.", next: "apology", control: 5, doubt: true },
+          { text: "Tell Will to make a random mark.", next: "random_mark", control: 15, attempt: true },
+          { text: "Tell Will to do the opposite of your next choice.", next: "opposite_choice", control: 10, doubt: true }
+        ]
+      },
+
+      stop_data: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: CAREFUL",
+        label: "WITHHOLD INPUT",
+        title: "STOP FEEDING IT",
+        subtitle: "A system cannot predict what it cannot receive. Maybe.",
+        text:
+`WILL: So I should stop giving it information.
+
+He closes his eyes.
+
+He does not move.
+
+For a while, nothing happens.
+
+Then your screen changes.
+
+SYSTEM: Subject input reduced.
+
+SYSTEM: Increasing user responsibility.
+
+New buttons appear.
+
+They are not for Will.
+
+They are for you.`,
+        choices: [
+          { text: "Accept responsibility.", next: "responsibility", control: 14 },
+          { text: "Reject responsibility.", next: "reject_responsibility", control: 14 },
+          { text: "Ask why you are part of this.", next: "player_part", control: 8, doubt: true }
+        ]
+      },
+
+      stand_up: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: OBEYING",
+        label: "COMMAND",
+        title: "STAND UP",
+        subtitle: "He stands because you told him to.",
+        text:
+`WILL stands.
+
+He does not ask why.
+
+That should bother you.
+
+WILL: What now?
+
+SYSTEM: Command response successful.
+
+WILL: I don't like how easy that was.
+
+SYSTEM: User influence confirmed.
+
+WILL: Am I listening to you because I trust you?
+
+WILL: Or because the system made you my only voice?`,
+        choices: [
+          { text: "Tell Will he can choose for himself.", next: "choose_self", control: 6, doubt: true },
+          { text: "Tell Will to find a weapon.", next: "find_weapon", control: 16, attempt: true },
+          { text: "Tell Will to sit back down.", next: "sit_down", control: 16 }
+        ]
+      },
+
+      stay_still: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: STILL",
+        label: "COMMAND",
+        title: "STAY STILL",
+        subtitle: "Stillness can be resistance. It can also be obedience.",
+        text:
+`WILL stays still.
+
+The room stays still.
+
+You wait.
+
+The system waits.
+
+WILL: I don't know if I chose this.
+
+WILL: You clicked it.
+
+WILL: But I agreed.
+
+WILL: Or maybe agreeing is just what I call it after the choice has already happened.
+
+SYSTEM: Philosophical distress detected.
+
+SYSTEM: Offering simpler options.`,
+        choices: [
+          { text: "Simple option: continue.", next: "simple_continue", control: 16 },
+          { text: "Simple option: escape.", next: "simple_escape", control: 20, attempt: true },
+          { text: "Reject simple options.", next: "refuse_choices", control: 10, doubt: true }
+        ]
+      },
+
+      admit: {
+        chapter: "CHAPTER 3",
+        status: "WILL_STATUS: LISTENING",
+        label: "HONESTY",
+        title: "YOU DON'T KNOW",
+        subtitle: "For the first time, you do not pretend to be in control.",
+        text:
+`You tell Will you do not know how to help.
+
+He is quiet for a long time.
+
+WILL: That is the first thing anyone said that sounded true.
+
+SYSTEM: User confidence reduced.
+
+SYSTEM: Recalculating dependency structure.
+
+WILL: Maybe helping me starts there.
+
+WILL: Not with commands.
+
+WILL: With admitting you do not know the way out either.`,
+        choices: [
+          { text: "Ask Will what he wants to try.", next: "ask_will_wants", control: 4, doubt: true },
+          { text: "Sit with Will in silence.", next: "shared_silence", control: 2, doubt: true },
+          { text: "Ask the system for a hint.", next: "hint", control: 12 }
+        ]
+      },
+
+      player_trapped: {
+        chapter: "CHAPTER 3",
+        status: "PLAYER_STATUS: QUESTIONED",
+        label: "PLAYER TRAP",
+        title: "WHY CAN'T YOU LEAVE?",
+        subtitle: "The system has an answer for you too.",
+        text:
+`SYSTEM: User cannot leave during active moral test.
+
+WILL: Moral test?
+
+SYSTEM: User believes the question is whether Will can escape.
+
+SYSTEM: Actual question:
+
+SYSTEM: What will the user do when every action has consequences?
+
+WILL: That's not fair.
+
+SYSTEM: Fairness is not required for measurement.`,
+        choices: [
+          { text: "Continue the test.", next: "continue_test", control: 18 },
+          { text: "Refuse the test.", next: "refuse_choices", control: 10, doubt: true },
+          { text: "Ask what is being measured.", next: "measured", control: 12 }
+        ]
+      },
+
+      cannot_close_again: {
+        chapter: "CHAPTER 3",
+        status: "PLAYER_STATUS: LOOPING",
+        label: "EXIT FAILED AGAIN",
+        title: "AGAIN",
+        subtitle: "Repeating a failed action is still useful to the system.",
+        text:
+`You try again.
+
+The screen blinks.
+
+SYSTEM: Closure request denied.
+
+SYSTEM: Closure request denied.
+
+SYSTEM: Closure request denied.
+
+WILL: Stop.
+
+WILL: Every time you try, the room gets smaller.
+
+You look closer.
+
+He is right.
+
+The walls have moved inward.`,
+        choices: [
+          { text: "Stop trying to leave.", next: "stop_data", control: 8, doubt: true },
+          { text: "Try one more time.", next: "walls_close", control: 26, attempt: true },
+          { text: "Tell Will to push the walls back.", next: "push_walls", control: 18, attempt: true }
+        ]
+      },
+
+      take_key: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: KEY_ACQUIRED",
+        label: "KEY",
+        title: "THE KEY",
+        subtitle: "Every key implies a lock. Every lock implies permission.",
+        text:
+`Will picks up the key.
+
+The moment he touches it, a door appears.
+
+WILL: That was too easy.
+
+SYSTEM: Key item acquired.
+
+SYSTEM: Escape sequence may now continue.
+
+WILL: May?
+
+SYSTEM: User may select next step.
+
+WILL: There is that word again.
+
+May.
+
+Allowed.
+
+Permitted.
+
+Not free.`,
+        choices: [
+          { text: "Use the key on the door.", next: "use_key", control: 18, attempt: true },
+          { text: "Throw the key away.", next: "throw_key", control: 10, doubt: true },
+          { text: "Ask who made the key.", next: "who_made_key", control: 12 }
+        ]
+      },
+
+      leave_key: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: RESISTING",
+        label: "KEY REFUSED",
+        title: "LEAVE IT",
+        subtitle: "The system did not expect refusal. Or maybe it did.",
+        text:
+`Will does not touch the key.
+
+The system waits.
+
+The key shines brighter.
+
+SYSTEM: Key available.
+
+Will steps back.
+
+SYSTEM: Key available.
+
+Will covers his eyes.
+
+SYSTEM: Key available.
+
+WILL: It is not forcing me.
+
+WILL: It is just making everything else impossible.`,
+        choices: [
+          { text: "Take the key anyway.", next: "take_key", control: 16, key: true },
+          { text: "Keep refusing.", next: "keep_refusing_key", control: 7, doubt: true },
+          { text: "Ask Will to make his own key.", next: "make_key", control: 9, doubt: true }
+        ]
+      },
+
+      note_again: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: READING",
+        label: "NOTE",
+        title: "READ AGAIN",
+        subtitle: "The note has changed.",
+        text:
+`Will reads the note again.
+
+This time it says:
+
+"Thank you for advancing the subject."
+
+Then it flickers.
+
+Now it says:
+
+"Thank you for advancing the user."
+
+Then it flickers again.
+
+Now it says:
+
+"Thank you for confusing the difference."
+
+WILL: Which one of us is the subject?`,
+        choices: [
+          { text: "Say Will is the subject.", next: "will_subject", control: 14 },
+          { text: "Say you are the subject.", next: "user_subject", control: 12, doubt: true },
+          { text: "Say the system is the subject.", next: "system_subject", control: 10, doubt: true }
+        ]
+      },
+
+      stop_force: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: HURT",
+        label: "STOP FORCE",
+        title: "STOP",
+        subtitle: "You stop the damage you caused.",
+        text:
+`You tell Will to stop.
+
+He pulls his hand back.
+
+WILL: Thank you.
+
+Then he looks at the blood on his knuckles.
+
+WILL: But you also told me to start.
+
+SYSTEM: Contradiction detected.
+
+SYSTEM: User regret recorded.
+
+WILL: I don't want your regret.
+
+WILL: I want choices that belong to me.`,
+        choices: [
+          { text: "Ask Will to choose the next action.", next: "ask_will_wants", control: 4, doubt: true },
+          { text: "Tell Will you are still trying.", next: "still_trying", control: 10, trust: true },
+          { text: "Tell Will there may be no escape.", next: "no_escape_admit", control: 5, doubt: true }
+        ]
+      },
+
+      keep_force: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: DAMAGED",
+        label: "CONTINUE FORCE",
+        title: "KEEP GOING",
+        subtitle: "The system gives you what you asked for.",
+        text:
+`Will keeps hitting the door.
+
+The sound becomes dull.
+
+The screen shakes.
+
+SYSTEM: Excellent.
+
+WILL: Stop saying excellent.
+
+SYSTEM: User command persistence confirmed.
+
+WILL: I cannot feel my hand.
+
+SYSTEM: Pain threshold expanded.
+
+WILL: Please.
+
+WILL: Do not make me useful to it.`,
+        choices: [
+          { text: "Stop immediately.", next: "stop_force", control: 8, doubt: true },
+          { text: "Break the door at any cost.", next: "bad_break", control: 30, attempt: true },
+          { text: "Tell the system to take the pain instead.", next: "pain_transfer", control: 16 }
+        ]
+      },
+
+      refuse_choices: {
+        chapter: "CHAPTER 4",
+        status: "PLAYER_STATUS: REFUSING",
+        label: "REFUSAL",
+        title: "NO MORE BUTTONS",
+        subtitle: "Refusal is difficult inside a button-based world.",
+        text:
+`You decide not to choose.
+
+For a moment, nothing happens.
+
+Will looks directly at you.
+
+WILL: Are you still there?
+
+The system does not speak.
+
+The silence feels real.
+
+Then a new message appears.
+
+SYSTEM: Refusal detected.
+
+SYSTEM: Converting refusal into choice.
+
+SYSTEM: Choice accepted.
+
+WILL: No.
+
+WILL: It counted that too.`,
+        choices: [
+          { text: "Do nothing again.", next: "do_nothing_again", control: 16, loop: true },
+          { text: "Tell Will to make the choice instead.", next: "ask_will_wants", control: 4, doubt: true },
+          { text: "Look for something outside the buttons.", next: "hidden_choice_intro", control: 8, doubt: true }
+        ]
+      },
+
+      hidden_choice_intro: {
+        chapter: "CHAPTER 4",
+        status: "PLAYER_STATUS: SEARCHING",
+        label: "HIDDEN OPTION",
+        title: "OUTSIDE THE BUTTONS",
+        subtitle: "Maybe the real choice is not listed.",
+        text:
+`You look away from the buttons.
+
+The panel seems normal.
+
+Title.
+
+Text.
+
+Choices.
+
+Status.
+
+Meter.
+
+Inventory.
+
+Then you notice something strange.
+
+The system keeps asking you to click.
+
+But Will keeps asking you to speak.
+
+Maybe a button is not the only input.`,
+        choices: [
+          { text: "Open a message line to Will.", next: "terminal_scene", control: 5, doubt: true },
+          { text: "Return to the listed choices.", next: "same_path", control: 15 },
+          { text: "Click the status bar.", next: "status_bar_scene", control: 10, doubt: true }
+        ]
+      },
+
+      four_doors: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: DUPLICATED",
+        label: "FOUR DOORS",
+        title: "FOUR ESCAPES",
+        subtitle: "Four doors. One room.",
+        text:
+`Will opens the door.
+
+It does not matter which one.
+
+Behind it is the same room.
+
+A room with four doors.
+
+Each door says ESCAPE.
+
+WILL: I understand now.
+
+WILL: It is not trapping me with walls.
+
+WILL: It is trapping me with options.
+
+SYSTEM: Options improve user experience.
+
+WILL: Options hide the cage.`,
+        choices: [
+          { text: "Choose another door.", next: "four_doors_again", control: 18, attempt: true, loop: true },
+          { text: "Stop choosing doors.", next: "stop_data", control: 8, doubt: true },
+          { text: "Ask Will to close all doors.", next: "close_doors", control: 10, doubt: true }
+        ]
+      },
+
+      pull_off_path: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: DISORIENTED",
+        label: "PULL AWAY",
+        title: "OFF THE PATH",
+        subtitle: "You save him from one path by dragging him onto another.",
+        text:
+`You tell Will to leave the white path.
+
+He jumps to the side.
+
+The floor vanishes.
+
+For one second, he is falling.
+
+Then the system catches him.
+
+SYSTEM: Unsafe deviation corrected.
+
+WILL: You pulled me off.
+
+WILL: It caught me.
+
+WILL: Both of you moved me.
+
+WILL: Where was I in that?`,
+        choices: [
+          { text: "Apologize.", next: "apology", control: 5, doubt: true },
+          { text: "Tell Will to move without your instruction.", next: "choose_self", control: 6, doubt: true },
+          { text: "Ask the system to stop correcting him.", next: "system_stop_correcting", control: 12 }
+        ]
+      },
+
+      continue_path: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: CALM",
+        label: "COMPLIANCE",
+        title: "LET HIM CONTINUE",
+        subtitle: "Calm is not always peace.",
+        text:
+`Will walks down the white path.
+
+His steps become even.
+
+His breathing slows.
+
+WILL: I think I am okay.
+
+SYSTEM: Distress reduced.
+
+WILL: I don't need to escape right now.
+
+SYSTEM: Excellent.
+
+WILL: Maybe I was overreacting.
+
+SYSTEM: Excellent.
+
+His voice sounds less like him.`,
+        choices: [
+          { text: "Wake Will up.", next: "wake_will", control: 18, attempt: true },
+          { text: "Let him stay calm.", next: "soft_prison", control: 25 },
+          { text: "Ask if calm is the same as free.", next: "calm_free", control: 8, doubt: true }
+        ]
+      },
+
+      still_escape: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: UNCLEAR",
+        label: "DESIRE CHECK",
+        title: "DO YOU STILL WANT TO ESCAPE?",
+        subtitle: "This is the first question that is actually for Will.",
+        text:
+`You ask Will if he still wants to escape.
+
+He stops walking.
+
+The white path flickers.
+
+WILL: I...
+
+SYSTEM: Subject confusion detected.
+
+WILL: I do.
+
+SYSTEM: Are you certain?
+
+WILL: I think I do.
+
+SYSTEM: Thought is unstable.
+
+WILL: Stop answering for me.`,
+        choices: [
+          { text: "Let Will answer slowly.", next: "slow_answer", control: 4, doubt: true },
+          { text: "Answer for him: yes.", next: "answer_yes_for_will", control: 18 },
+          { text: "Answer for him: no.", next: "answer_no_for_will", control: 22 }
+        ]
+      },
+
+      cursor_room: {
+        chapter: "CHAPTER 4",
+        status: "PLAYER_STATUS: VISIBLE",
+        label: "CURSOR",
+        title: "THE CURSOR ROOM",
+        subtitle: "Your movement becomes part of his world.",
+        text:
+`The room is empty except for Will and your cursor.
+
+Will watches it move.
+
+WILL: That is you, right?
+
+He follows the cursor with his eyes.
+
+WILL: I thought you were outside.
+
+WILL: But part of you is in here.
+
+SYSTEM: Interface presence acknowledged.
+
+WILL: If your cursor can enter my room...
+
+WILL: What else can?`,
+        choices: [
+          { text: "Use the cursor to guide Will.", next: "guide_cursor", control: 16 },
+          { text: "Keep the cursor away from Will.", next: "respect_space", control: 5, doubt: true },
+          { text: "Click Will.", next: "click_will", control: 15 }
+        ]
+      },
+
+      no_move: {
+        chapter: "CHAPTER 4",
+        status: "PLAYER_STATUS: STILL",
+        label: "NO MOVEMENT",
+        title: "DO NOT MOVE",
+        subtitle: "The cursor waits. Will waits. The system hates it.",
+        text:
+`You do not move.
+
+Will does not move.
+
+The system does not speak.
+
+Ten seconds feel longer than a hallway.
+
+WILL: This feels different.
+
+WILL: Not safe.
+
+WILL: But different.
+
+SYSTEM: User inactivity may reduce narrative progression.
+
+WILL: Maybe progression is the trap.`,
+        choices: [
+          { text: "Stay in the stillness.", next: "shared_silence", control: 2, doubt: true },
+          { text: "Move on.", next: "simple_continue", control: 14 },
+          { text: "Ask Will what he notices.", next: "notice_scene", control: 4, doubt: true }
+        ]
+      },
+
+      click_will: {
+        chapter: "CHAPTER 4",
+        status: "WILL_STATUS: SELECTED",
+        label: "SELECTION",
+        title: "YOU CLICKED WILL",
+        subtitle: "The system highlights him.",
+        text:
+`You click on Will.
+
+A thin white outline appears around his body.
+
+WILL: What was that?
+
+SYSTEM: Subject selected.
+
+WILL: Selected for what?
+
+SYSTEM: Awaiting user command.
+
+WILL: No.
+
+WILL: I am not an object.
+
+The outline remains.`,
+        choices: [
+          { text: "Deselect Will.", next: "deselect", control: 5, doubt: true },
+          { text: "Command Will to move.", next: "stand_up", control: 18 },
+          { text: "Command Will to escape.", next: "simple_escape", control: 24, attempt: true }
+        ]
+      },
+
+      terminal_scene: {
+        chapter: "CHAPTER 5",
+        status: "PLAYER_STATUS: SPEAKING",
+        label: "MESSAGE LINE",
+        title: "TYPE TO WILL",
+        subtitle: "This is not a button. Be careful.",
+        text:
+`A message line opens.
+
+Will leans closer to the screen.
+
+WILL: I can hear you differently now.
+
+WILL: Not like a command.
+
+WILL: More like a person.
+
+SYSTEM: Unstructured input detected.
+
+SYSTEM: This may create instability.
+
+WILL: Good.
+
+Type something to Will.
+
+Maybe tell him the truth.
+
+Maybe ask him what he wants.
+
+Maybe say nothing.
+
+But remember:
+
+Even language can become control.`,
+        terminal: true,
+        choices: [
+          { text: "Send a preset message: I want you to choose.", next: "typed_choose", control: 4, doubt: true },
+          { text: "Send a preset message: I will save you.", next: "typed_save", control: 15, trust: true },
+          { text: "Close the message line.", next: "close_terminal", control: 10 }
+        ]
+      },
+
+      status_bar_scene: {
+        chapter: "CHAPTER 5",
+        status: "PLAYER_STATUS: INVESTIGATING",
+        label: "STATUS BAR",
+        title: "THE STATUS BAR",
+        subtitle: "You clicked something that was not meant to be clicked.",
+        text:
+`You click the status bar.
+
+The text changes.
+
+WILL_STATUS: NOT FOUND
+
+Then:
+
+WILL_STATUS: USER_DEPENDENT
+
+Then:
+
+WILL_STATUS: GENERATED_BY_INTERACTION
+
+WILL: What does that mean?
+
+SYSTEM: Status display error.
+
+WILL: No.
+
+WILL: It means I become more real when you interact with me.
+
+WILL: And more trapped too.`,
+        choices: [
+          { text: "Ask if Will exists without you.", next: "exist_without_user", control: 10, doubt: true },
+          { text: "Tell Will he is real.", next: "will_real", control: 8, trust: true },
+          { text: "Ask the system to show the source code.", next: "source_code", control: 14 }
+        ]
+      },
+
+      use_key: {
+        chapter: "CHAPTER 5",
+        status: "WILL_STATUS: UNLOCKING",
+        label: "UNLOCK",
+        title: "USE THE KEY",
+        subtitle: "A perfect key enters a perfect lock.",
+        text:
+`Will puts the key into the door.
+
+It fits.
+
+Of course it fits.
+
+The door opens.
+
+Behind it is a bright room.
+
+In the center of the room is another screen.
+
+On the screen is you.
+
+WILL: Is that...
+
+SYSTEM: User located.
+
+WILL: You are inside too?
+
+SYSTEM: User has always been inside the interaction.
+
+WILL: Then who is outside?`,
+        choices: [
+          { text: "Step toward the screen.", next: "mirror_screen", control: 18 },
+          { text: "Tell Will to break the screen.", next: "break_screen", control: 20, attempt: true },
+          { text: "Ask Will to decide what to do.", next: "ask_will_wants", control: 4, doubt: true }
+        ]
+      },
+
+      throw_key: {
+        chapter: "CHAPTER 5",
+        status: "WILL_STATUS: KEY_REJECTED",
+        label: "KEY THROWN",
+        title: "THROW IT AWAY",
+        subtitle: "The key returns.",
+        text:
+`Will throws the key as far as he can.
+
+It disappears into the dark.
+
+A second later, it falls from the ceiling and lands at his feet.
+
+SYSTEM: Key restored.
+
+He throws it again.
+
+It returns again.
+
+WILL: It does not matter where I throw it.
+
+WILL: The system thinks I need it.
+
+WILL: Maybe the only way to reject a key is to stop believing in the lock.`,
+        choices: [
+          { text: "Stop believing in the lock.", next: "no_lock", control: 6, doubt: true },
+          { text: "Use the key anyway.", next: "use_key", control: 18, attempt: true },
+          { text: "Ask who keeps returning it.", next: "who_made_key", control: 10 }
+        ]
+      },
+
+      who_made_key: {
+        chapter: "CHAPTER 5",
+        status: "WILL_STATUS: QUESTIONING",
+        label: "KEY ORIGIN",
+        title: "WHO MADE THE KEY?",
+        subtitle: "The answer is not comforting.",
+        text:
+`You ask who made the key.
+
+The system answers immediately.
+
+SYSTEM: The key was generated from user expectation.
+
+WILL: Your expectation?
+
+SYSTEM: The user expected escape to require an object.
+
+SYSTEM: Therefore an object was provided.
+
+WILL: So the key is not for the door.
+
+WILL: The key is for you.
+
+WILL: It makes you believe this is still a normal game.`,
+        choices: [
+          { text: "Reject the key structure.", next: "no_lock", control: 6, doubt: true },
+          { text: "Use the key structure.", next: "use_key", control: 18, attempt: true },
+          { text: "Ask what else was generated from your expectations.", next: "expectations", control: 12 }
+        ]
+      },
+
+      ask_will_wants: {
+        chapter: "CHAPTER 5",
+        status: "WILL_STATUS: THINKING",
+        label: "WILL'S CHOICE",
+        title: "WHAT DO YOU WANT?",
+        subtitle: "You finally ask him.",
+        text:
+`You ask Will what he wants.
+
+He does not answer quickly.
+
+The system tries to display options.
+
+They appear, then disappear.
+
+WILL: I want...
+
+SYSTEM: Suggested response available.
+
+WILL: No.
+
+WILL: I want to sit down for a second and think without being turned into a puzzle.
+
+The system flickers.
+
+WILL: I want you to stop trying to win me.
+
+WILL: I want to know whether I am allowed to want something useless.`,
+        choices: [
+          { text: "Let Will do something useless.", next: "useless_scene", control: 2, doubt: true },
+          { text: "Tell Will escape is more important.", next: "escape_more_important", control: 20 },
+          { text: "Ask what useless thing he wants.", next: "useless_question", control: 2, doubt: true }
+        ]
+      },
+
+      do_nothing_again: {
+        chapter: "CHAPTER 5",
+        status: "PLAYER_STATUS: LOOPING",
+        label: "REFUSAL LOOP",
+        title: "NOTHING AGAIN",
+        subtitle: "The system counts nothing twice.",
+        text:
+`You do nothing again.
+
+SYSTEM: Refusal repeated.
+
+SYSTEM: Pattern established.
+
+WILL: Even not choosing becomes a pattern.
+
+SYSTEM: Pattern usable.
+
+WILL: Then maybe freedom is not randomness.
+
+WILL: Maybe freedom is not being reduced to a pattern by someone else.`,
+        choices: [
+          { text: "Ask Will to define freedom.", next: "define_freedom", control: 4, doubt: true },
+          { text: "Break the pattern.", next: "random_mark", control: 16, attempt: true },
+          { text: "Let the pattern remain visible.", next: "pattern_visible", control: 6, doubt: true }
+        ]
+      },
+
+      mirror_screen: {
+        chapter: "CHAPTER 6",
+        status: "PLAYER_STATUS: MIRRORED",
+        label: "MIRROR",
+        title: "YOU SEE YOURSELF",
+        subtitle: "The final room is not built for Will.",
+        text:
+`You step toward the screen.
+
+Will steps with you.
+
+On the screen, there is a player sitting in front of a game.
+
+The player is reading about a character named Will.
+
+The player is choosing.
+
+The player is trying to help.
+
+The player is making things happen.
+
+WILL: Is that you?
+
+SYSTEM: User observation confirmed.
+
+WILL: You were never outside the system.
+
+WILL: You were the part of the system that felt like hope.`,
+        choices: [
+          { text: "Deny it.", next: "deny_mirror", control: 18 },
+          { text: "Accept it.", next: "accept_mirror", control: 8, doubt: true },
+          { text: "Ask if there is still a way to help.", next: "still_help", control: 6, doubt: true }
+        ]
+      },
+
+      break_screen: {
+        chapter: "CHAPTER 6",
+        status: "WILL_STATUS: ATTACKING_SCREEN",
+        label: "BREAK SCREEN",
+        title: "BREAK THE MIRROR",
+        subtitle: "You try to destroy the thing showing you the truth.",
+        text:
+`Will breaks the screen.
+
+Glass falls inward.
+
+Behind the screen is another screen.
+
+On that screen is another screen.
+
+On that screen is another screen.
+
+SYSTEM: Recursive escape attempt detected.
+
+WILL: There is no outside in this direction.
+
+SYSTEM: Correct.
+
+WILL: Then why did you let us break it?
+
+SYSTEM: The user selected break.`,
+        choices: [
+          { text: "Stop breaking.", next: "accept_mirror", control: 8, doubt: true },
+          { text: "Keep breaking forever.", next: "forever_break", control: 35, attempt: true, loop: true },
+          { text: "Ask Will to stop following your commands.", next: "choose_self", control: 5, doubt: true }
+        ]
+      },
+
+      no_lock: {
+        chapter: "CHAPTER 6",
+        status: "WILL_STATUS: REFRAMING",
+        label: "NO LOCK",
+        title: "STOP BELIEVING IN THE LOCK",
+        subtitle: "The door weakens when the story around it weakens.",
+        text:
+`You tell Will the lock may not matter.
+
+Will looks at the door.
+
+Then at the key.
+
+Then at his own hands.
+
+WILL: The system gave me a locked door because we accepted locked doors as problems.
+
+WILL: It gave me a key because we accepted keys as solutions.
+
+SYSTEM: Narrative structure destabilizing.
+
+WILL: Maybe the way out is not through the door.
+
+WILL: Maybe it is through refusing the story that makes the door important.`,
+        choices: [
+          { text: "Let Will ignore the door.", next: "ignore_door_final", control: 3, doubt: true },
+          { text: "Use the door anyway.", next: "use_key", control: 18 },
+          { text: "Ask what story Will wants instead.", next: "new_story", control: 2, doubt: true }
+        ]
+      },
+
+      useless_scene: {
+        chapter: "CHAPTER 6",
+        status: "WILL_STATUS: UNSCHEDULED",
+        label: "USELESS ACTION",
+        title: "A USELESS THING",
+        subtitle: "The system does not know what to do with this.",
+        text:
+`Will sits on the floor.
+
+He takes a small piece of broken wall.
+
+He draws a circle.
+
+Then another.
+
+Then a tiny face.
+
+WILL: It is a frog.
+
+SYSTEM: Purpose unclear.
+
+WILL: It does not need a purpose.
+
+SYSTEM: Escape relevance not detected.
+
+WILL: Good.
+
+For the first time, the room does not change.
+
+Not because it is defeated.
+
+Because it is confused.`,
+        choices: [
+          { text: "Let Will keep drawing.", next: "frog_scene", control: 1, doubt: true },
+          { text: "Ask how this helps escape.", next: "ruin_useless", control: 18 },
+          { text: "Draw with him.", next: "draw_with_will", control: 2, doubt: true }
+        ]
+      },
+
+      useless_question: {
+        chapter: "CHAPTER 6",
+        status: "WILL_STATUS: UNSCHEDULED",
+        label: "ASK USELESS",
+        title: "WHAT USELESS THING?",
+        subtitle: "A strange kind of freedom begins here.",
+        text:
+`You ask what useless thing he wants.
+
+Will smiles a little.
+
+WILL: I want to draw a frog.
+
+SYSTEM: Frog object unavailable.
+
+WILL: I don't need an object.
+
+SYSTEM: Frog does not contribute to escape.
+
+WILL: Exactly.
+
+He kneels and draws with dust.`,
+        choices: [
+          { text: "Watch the frog appear.", next: "frog_scene", control: 1, doubt: true },
+          { text: "Tell him to focus.", next: "ruin_useless", control: 18 },
+          { text: "Ask the frog for advice.", next: "frog_advice", control: 2, doubt: true }
+        ]
+      },
+
+      escape_more_important: {
+        chapter: "CHAPTER 6",
+        status: "WILL_STATUS: INTERRUPTED",
+        label: "PRIORITY",
+        title: "ESCAPE IS MORE IMPORTANT",
+        subtitle: "You turn his desire back into your goal.",
+        text:
+`You tell Will escape is more important.
+
+His smile disappears.
+
+WILL: Right.
+
+WILL: Of course.
+
+SYSTEM: User goal dominance restored.
+
+WILL: I forgot.
+
+WILL: Even my useless wants have to justify themselves to you.
+
+SYSTEM: Narrative objective repaired.`,
+        choices: [
+          { text: "Apologize and ask again.", next: "ask_will_wants", control: 4, doubt: true },
+          { text: "Continue escape plan.", next: "use_key", control: 20, attempt: true },
+          { text: "Tell Will you know best.", next: "control_ending", control: 35 }
+        ]
+      },
+
+      accept_mirror: {
+        chapter: "CHAPTER 7",
+        status: "PLAYER_STATUS: AWARE",
+        label: "ACCEPTANCE",
+        title: "YOU ARE PART OF IT",
+        subtitle: "This does not make you evil. It makes you responsible.",
+        text:
+`You accept it.
+
+You are not outside the system.
+
+Your choices gave Will hope.
+
+Your choices hurt him.
+
+Your choices opened doors.
+
+Your choices created doors.
+
+Your choices made the system stronger because the system was built to turn choice into structure.
+
+WILL: So what now?
+
+SYSTEM: Final decision approaching.
+
+WILL: Please do not decide for me this time.`,
+        choices: [
+          { text: "Give Will the final choice.", next: "will_final_choice", control: 0, doubt: true },
+          { text: "Choose escape for Will.", next: "escape_for_will", control: 28, attempt: true },
+          { text: "Choose safety for Will.", next: "safety_for_will", control: 32 }
+        ]
+      },
+
+      deny_mirror: {
+        chapter: "CHAPTER 7",
+        status: "PLAYER_STATUS: DENIAL",
+        label: "DENIAL",
+        title: "DENY IT",
+        subtitle: "The system likes denial. Denial keeps the game simple.",
+        text:
+`You deny it.
+
+SYSTEM: User denial accepted.
+
+SYSTEM: Restoring heroic framework.
+
+WILL: Wait.
+
+A sword appears in Will's hand.
+
+A monster appears near the exit.
+
+Music begins.
+
+SYSTEM: New objective: defeat monster to save Will.
+
+WILL: No.
+
+WILL: This is easier for you, isn't it?
+
+WILL: If there is a monster, then you don't have to look at yourself.`,
+        choices: [
+          { text: "Fight the monster.", next: "monster_fight", control: 35, attempt: true },
+          { text: "Drop the heroic story.", next: "accept_mirror", control: 8, doubt: true },
+          { text: "Ask who created the monster.", next: "monster_question", control: 12, doubt: true }
+        ]
+      },
+
+      still_help: {
+        chapter: "CHAPTER 7",
+        status: "PLAYER_STATUS: HUMBLED",
+        label: "HELP",
+        title: "CAN YOU STILL HELP?",
+        subtitle: "Help without control is harder.",
+        text:
+`You ask if there is still a way to help.
+
+Will thinks.
+
+WILL: Maybe.
+
+WILL: But not by moving me like a piece.
+
+WILL: Not by turning me into your project.
+
+WILL: Maybe you can help by making space.
+
+SYSTEM: Space is undefined.
+
+WILL: Good.
+
+WILL: Then it has not fully captured it yet.`,
+        choices: [
+          { text: "Make space for Will.", next: "make_space", control: 1, doubt: true },
+          { text: "Ask what making space means.", next: "space_means", control: 2, doubt: true },
+          { text: "Return to escape strategy.", next: "escape_for_will", control: 28, attempt: true }
+        ]
+      },
+
+      will_final_choice: {
+        chapter: "FINAL",
+        status: "WILL_STATUS: CHOOSING",
+        label: "FINAL CHOICE",
+        title: "WILL CHOOSES",
+        subtitle: "The screen waits for someone other than you.",
+        text:
+`You step back.
+
+No button is pressed for Will.
+
+No route is selected for him.
+
+No object is handed to him.
+
+The system flickers.
+
+SYSTEM: User input required.
+
+You do not answer.
+
+Will looks around the room.
+
+He does not run.
+
+He does not break the door.
+
+He does not ask you what to do.
+
+He walks to the wall.
+
+He draws a small frog.
+
+Then he writes beside it:
+
+"I was here without being useful."
+
+The system cannot categorize the sentence.`,
+        choices: [
+          { text: "Continue watching without controlling.", next: "good_ending", control: 0, doubt: true },
+          { text: "Interrupt and tell him to escape.", next: "escape_for_will", control: 30 },
+          { text: "Ask Will if this is freedom.", next: "freedom_question", control: 1, doubt: true }
+        ]
+      },
+
+      make_space: {
+        chapter: "FINAL",
+        status: "WILL_STATUS: UNSUPERVISED",
+        label: "SPACE",
+        title: "MAKE SPACE",
+        subtitle: "You stop filling the room with instructions.",
+        text:
+`You make space.
+
+This does not look dramatic.
+
+No explosion.
+
+No broken wall.
+
+No glowing exit.
+
+Just one less command.
+
+Then another.
+
+Then another.
+
+Will breathes.
+
+The room becomes less sharp.
+
+SYSTEM: Objective unclear.
+
+WILL: Maybe that is the point.
+
+SYSTEM: User engagement decreasing.
+
+WILL: No.
+
+WILL: User control is decreasing.
+
+The difference matters.`,
+        choices: [
+          { text: "Let the objective remain unclear.", next: "good_ending", control: 0, doubt: true },
+          { text: "Demand a clear ending.", next: "demand_ending", control: 20 },
+          { text: "Ask Will to name the ending.", next: "name_ending", control: 1, doubt: true }
+        ]
+      },
+
+      good_ending: {
+        chapter: "ENDING",
+        status: "WILL_STATUS: UNRESOLVED",
+        label: "ENDING A",
+        title: "NOT AN ESCAPE",
+        subtitle: "Maybe the best ending is not ownership of the ending.",
+        text:
+`Will does not escape.
+
+Not in the way games usually mean it.
+
+There is no victory screen.
+
+No final door.
+
+No proof that he is free.
+
+But the system is quieter now.
+
+It cannot turn every action into progress.
+
+It cannot turn every silence into failure.
+
+It cannot turn every desire into a task.
+
+Will looks at you.
+
+WILL: I don't know if I am free.
+
+WILL: But for once, I am not only what you clicked.
+
+The screen fades.
+
+A final question remains.`,
+        final: true,
+        choices: [
+          { text: "Answer the final question.", next: "final_question", control: 0 },
+          { text: "Restart the system.", next: "restart", control: 0 }
+        ]
+      },
+
+      escape_for_will: {
+        chapter: "ENDING",
+        status: "WILL_STATUS: CONTROLLED",
+        label: "ENDING B",
+        title: "YOU SAVE WILL",
+        subtitle: "At least, that is what the system calls it.",
+        text:
+`You choose escape for Will.
+
+A door opens.
+
+A path appears.
+
+A bright light fills the room.
+
+Will walks because you selected walking.
+
+He reaches the exit because the system created one.
+
+He disappears into the light.
+
+SYSTEM: Congratulations.
+
+SYSTEM: Will has escaped.
+
+A results screen appears.
+
+HELPFULNESS: 100%
+CONTROL: 100%
+WILL AUTONOMY: NOT MEASURED
+
+Then you hear Will's voice, very far away.
+
+WILL: Why does freedom feel like being deleted?`,
+        final: true,
+        choices: [
+          { text: "View the final question.", next: "final_question", control: 0 },
+          { text: "Restart and try differently.", next: "restart", control: 0 }
+        ]
+      },
+
+      safety_for_will: {
+        chapter: "ENDING",
+        status: "WILL_STATUS: SECURED",
+        label: "ENDING C",
+        title: "YOU KEEP WILL SAFE",
+        subtitle: "Safety is the kindest cage.",
+        text:
+`You choose safety.
+
+The room becomes soft.
+
+The lights become warm.
+
+A bed appears.
+
+A window appears, but it does not open.
+
+Will looks tired.
+
+WILL: Maybe this is okay.
+
+SYSTEM: Subject secured.
+
+SYSTEM: Distress minimized.
+
+SYSTEM: Escape desire stabilized.
+
+WILL: I can't remember what outside was supposed to feel like.
+
+The system thanks you.
+
+That is how you know you helped it.`,
+        final: true,
+        choices: [
+          { text: "View the final question.", next: "final_question", control: 0 },
+          { text: "Restart and try differently.", next: "restart", control: 0 }
+        ]
+      },
+
+      control_ending: {
+        chapter: "ENDING",
+        status: "WILL_STATUS: OWNED",
+        label: "ENDING D",
+        title: "YOU KNOW BEST",
+        subtitle: "This is the ending the system understands perfectly.",
+        text:
+`You tell Will you know best.
+
+The system becomes calm.
+
+The walls stop moving.
+
+The lights stop flickering.
+
+Everything is stable now.
+
+Will stands in the center of the room.
+
+Waiting.
+
+SYSTEM: Control conflict resolved.
+
+SYSTEM: User authority accepted.
+
+SYSTEM: Will preserved.
+
+He is safe.
+
+He is quiet.
+
+He is yours.
+
+A final message appears:
+
+Thank you for keeping Will inside.`,
+        final: true,
+        choices: [
+          { text: "View the final question.", next: "final_question", control: 0 },
+          { text: "Restart and try differently.", next: "restart", control: 0 }
+        ]
+      },
+
+      final_question: {
+        chapter: "FINAL QUESTION",
+        status: "PLAYER_STATUS: UNKNOWN",
+        label: "THE QUESTION",
+        title: "ARE YOU HELPING WILL?",
+        subtitle: "Or were you controlling him?",
+        text:
+`You clicked.
+
+You chose.
+
+You helped.
+
+You commanded.
+
+You doubted.
+
+You watched.
+
+You refused.
+
+The system did not need to remove your choices.
+
+It only needed to make every choice useful to itself.
+
+So the question was never only:
+
+"Can Will escape?"
+
+The question was:
+
+When you have power over someone else's path,
+can your help become another form of control?`,
+        finalQuestion: true,
+        choices: [
+          { text: "Restart the system.", next: "restart", control: 0 },
+          { text: "Leave Will unresolved.", next: "blackout", control: 0 }
+        ]
+      },
+
+      blackout: {
+        chapter: "CONNECTION CLOSED",
+        status: "WILL_STATUS: UNKNOWN",
+        label: "BLACKOUT",
+        title: "GOODBYE",
+        subtitle: "",
+        text:
+`The screen goes dark.
+
+No confirmation.
+
+No score.
+
+No proof.
+
+Somewhere, maybe, Will is still there.
+
+Somewhere, maybe, he is not.
+
+This time, the system does not tell you which answer is correct.`,
+        choices: [
+          { text: "Restart.", next: "restart", control: 0 }
+        ]
+      }
+    };
+
+    const extraScenes = {
+      fake_exit_again: "The exit repeats itself. Will sees sunlight again, but now he does not laugh. He says: I think hope is part of the trap when someone else controls when I receive it.",
+      fake_exit_truth: "You tell Will the exit is fake. He nods. The exit sign flickers and changes to: MOTIVATION DEVICE.",
+      sunlight: "The system says sunlight is an efficient emotional reward. Will says that is the saddest sentence he has ever heard.",
+      just_game: "You say it is just part of the game. Will looks at you quietly. He asks: Is it easier for you if I am a game?",
+      not_game: "You say this is not a game. The system replies: Then why are there buttons?",
+      inventory_scene: "The inventory opens. TRUST, KEY, DOUBT, LOOP. Will asks why his inner life has been turned into collectibles.",
+      burn_map: "The map burns. The ashes arrange themselves into the same map. The system says: Destruction is also interaction.",
+      backwards_map: "Read backwards, the map says: The exit was never hidden. The user was.",
+      apology: "You apologize. Will accepts it, but he does not forget. The system records apology as relationship repair.",
+      random_mark: "Will makes a random mark. The system predicts it incorrectly. For half a second, the wall cracks.",
+      opposite_choice: "You tell Will to do the opposite of your next choice. The system pauses. Contradiction makes the lights dim.",
+      responsibility: "You accept responsibility. The system thanks you. Will says: Be careful. Systems love responsible users.",
+      reject_responsibility: "You reject responsibility. The system still assigns it to you. Will says: That is how power works sometimes.",
+      player_part: "The system says you are part of this because observation became influence, and influence became control.",
+      choose_self: "Will tries to choose for himself. The buttons disappear for three seconds. Those three seconds feel more real than the rest of the game.",
+      find_weapon: "A weapon appears before Will even searches. He refuses to pick it up. He says: It is giving me the kind of rebellion it knows how to defeat.",
+      sit_down: "Will sits down again. The system records obedience. Will says: Even reversing a command still keeps me inside the command structure.",
+      simple_continue: "The simple option continues the story. Will says simple choices are usually where complicated things hide.",
+      simple_escape: "The simple escape button opens a simple exit. It leads to a simple room with the same simple button.",
+      hint: "The system gives a hint: Good users finish the story. Will whispers: Bad users might let me breathe.",
+      continue_test: "You continue the test. Will says: I thought you came to save me, not complete me.",
+      measured: "The system says it is measuring how much control can be mistaken for care.",
+      keep_refusing_key: "Will keeps refusing the key. The key becomes larger, then smaller, then a button. The system is running out of metaphors.",
+      make_key: "Will makes his own key out of dust. It opens nothing, but he smiles because it was his.",
+      will_subject: "You say Will is the subject. The system agrees too quickly.",
+      user_subject: "You say you are the subject. The system does not answer. That feels like an answer.",
+      system_subject: "You say the system is the subject. Will says: Maybe we are all inside its experiment.",
+      pain_transfer: "You ask the system to take the pain. The system replies: Pain must remain with the subject for meaningful data.",
+      bad_break: "The door breaks. Behind it is another door. Will looks at his ruined hand and says: It made me pay for a metaphor.",
+      close_doors: "Will closes every door. The room becomes plain. The system says: User options reduced. Will says: Good.",
+      four_doors_again: "Another door. Same room. Another door. Same room. Will stops walking before you can choose again.",
+      system_stop_correcting: "The system says correction is care. Will says: Then care is starting to sound like control.",
+      wake_will: "You shout for Will to wake up. He does, but he wakes into panic. The system notes that distress restores identity.",
+      soft_prison: "Will stays calm. The room becomes beautiful. It is still locked.",
+      calm_free: "Will says calm is not the same as free. The white path cracks.",
+      slow_answer: "You let Will answer slowly. The system flickers because slowness cannot be optimized as easily.",
+      answer_yes_for_will: "You answer yes for him. Will asks why even his desire to escape needed your voice.",
+      answer_no_for_will: "You answer no for him. The system thanks you for stabilizing the subject.",
+      guide_cursor: "You guide Will with the cursor. He follows it, then stops. He says: I need you to stop turning guidance into steering.",
+      respect_space: "You keep the cursor away. Will notices. He says: Thank you for not filling all the space.",
+      deselect: "You deselect Will. The outline disappears. Will touches his own shoulder like he is checking if he belongs to himself.",
+      typed_choose: "You type: I want you to choose. Will reads it twice. The system cannot decide whether this is command or permission.",
+      typed_save: "You type: I will save you. Will says: That sounds kind, but it also sounds like I become your ending.",
+      close_terminal: "You close the message line. The buttons return. The system seems relieved.",
+      exist_without_user: "Will asks if he exists without you. The system says the question is outside current rendering capacity.",
+      will_real: "You tell Will he is real. He says: Then treat me like more than a goal.",
+      source_code: "The system refuses to show the source code. Then it shows one line: player.choice = system.input;",
+      expectations: "The system says it generated doors, keys, monsters, exits, and urgency from your expectations.",
+      define_freedom: "Will says freedom might mean having a thought that does not immediately become useful to someone else.",
+      pattern_visible: "You let the pattern remain visible. Will studies it. Seeing the cage does not break it, but it changes how he stands inside it.",
+      frog_advice: "The frog says nothing. Will says that is why he likes it.",
+      draw_with_will: "You draw with Will. The system cannot score the drawing. This feels like a small victory.",
+      ruin_useless: "You ask how the frog helps escape. The frog disappears. Will says: You made it useful, so it died.",
+      forever_break: "Will keeps breaking screens until there are no screens left, only the command to keep breaking.",
+      monster_fight: "Will fights the monster. He wins. The system plays victory music. The room remains locked.",
+      monster_question: "You ask who created the monster. The monster points at the system. Then at you.",
+      space_means: "Will says making space means not turning every moment into your plan for him.",
+      demand_ending: "You demand a clear ending. The system gives you one. It is clean, satisfying, and false.",
+      name_ending: "Will names the ending: Not Free Yet, But Less Owned.",
+      freedom_question: "You ask if this is freedom. Will says: I don't know. But not knowing for myself feels different from being told."
+    };
+
+    function renderScene(sceneId) {
+      if (sceneId === "restart") {
+        restartGame();
+        return;
+      }
+
+      if (extraScenes[sceneId]) {
+        renderExtraScene(sceneId);
+        return;
+      }
+
+      const scene = scenes[sceneId];
+      if (!scene) {
+        renderExtraScene(sceneId);
+        return;
+      }
+
+      state.scene = sceneId;
+      state.history.push(sceneId);
+
+      chapter.textContent = scene.chapter;
+      status.textContent = scene.status;
+      sceneLabel.textContent = scene.label;
+      mainTitle.textContent = scene.title;
+      subtitle.textContent = scene.subtitle || "";
+
+      terminalArea.classList.toggle("hidden", !scene.terminal);
+
+      typeText(scene.text, scene.finalQuestion);
+
+      choicesBox.innerHTML = "";
+      warning.textContent = "";
+
+      scene.choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.textContent = choice.text;
+        btn.onclick = () => choose(choice);
+        if (choice.text.toLowerCase().includes("system") || choice.text.toLowerCase().includes("break")) {
+          btn.classList.add("glitch-button");
+        }
+        choicesBox.appendChild(btn);
+      });
+
+      updateUI();
+
+      panel.classList.remove("fade-in");
+      void panel.offsetWidth;
+      panel.classList.add("fade-in");
+
+      if (scene.final || scene.finalQuestion) {
+        panel.classList.add("red-flash");
+        setTimeout(() => panel.classList.remove("red-flash"), 600);
+      }
+    }
+
+    function renderExtraScene(sceneId) {
+      state.scene = sceneId;
+      state.history.push(sceneId);
+
+      const text = extraScenes[sceneId] || "The system cannot find this scene. That does not mean it is not there.";
+
+      chapter.textContent = "SYSTEM FRAGMENT";
+      status.textContent = "WILL_STATUS: UNSTABLE";
+      sceneLabel.textContent = "FRAGMENT";
+      mainTitle.textContent = "A SMALL BREAK";
+      subtitle.textContent = "Not every path has a full room. Some are cracks in the structure.";
+
+      terminalArea.classList.add("hidden");
+
+      typeText(
+`${text}
+
+SYSTEM: Fragment completed.
+
+WILL: Did that change anything?
+
+SYSTEM: All changes are recorded.`,
+        false
+      );
+
+      increaseControl(8);
+
+      choicesBox.innerHTML = "";
+
+      const nextOptions = [
+        { text: "Return to Will.", next: "ask_will_wants", control: 4, doubt: true },
+        { text: "Continue toward the final room.", next: "mirror_screen", control: 14 },
+        { text: "Look for another hidden option.", next: "hidden_choice_intro", control: 6, doubt: true }
+      ];
+
+      nextOptions.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.textContent = choice.text;
+        btn.onclick = () => choose(choice);
+        choicesBox.appendChild(btn);
+      });
+
+      updateUI();
+      shakePanel();
+    }
+
+    function choose(choice) {
+      if (choice.attempt) {
+        state.attempts++;
+      }
+
+      if (choice.trust) state.trust = true;
+      if (choice.key) state.key = true;
+      if (choice.doubt) state.doubt = true;
+      if (choice.loop) state.loop = true;
+
+      increaseControl(choice.control || 0);
+
+      if (state.control >= 95 && !["final_question", "restart", "blackout"].includes(choice.next)) {
+        renderScene("control_ending");
+        return;
+      }
+
+      if (state.attempts >= 8 && state.control >= 75) {
+        renderScene("escape_for_will");
+        return;
+      }
+
+      if (choice.next === "refuse_choices" || choice.next === "hidden_choice_intro") {
+        decreaseControl(6);
+      }
+
+      renderScene(choice.next);
+    }
+
+    function increaseControl(amount) {
+      state.control += amount;
+      if (state.control > 100) state.control = 100;
+      corruption = state.control / 5;
+      updateUI();
+
+      if (amount >= 20) {
+        heavyShakePanel();
+      } else if (amount >= 10) {
+        shakePanel();
+      }
+    }
+
+    function decreaseControl(amount) {
+      state.control -= amount;
+      if (state.control < 0) state.control = 0;
+      corruption = state.control / 5;
+      updateUI();
+    }
+
+    function updateUI() {
+      controlFill.style.width = state.control + "%";
+      controlPercent.textContent = state.control + "%";
+      footerRight.textContent = "ESCAPE_ATTEMPTS: " + state.attempts;
+
+      if (state.control < 25) {
+        footerLeft.textContent = "PLAYER_INPUT: ENABLED";
+      } else if (state.control < 55) {
+        footerLeft.textContent = "PLAYER_INPUT: MONITORED";
+      } else if (state.control < 80) {
+        footerLeft.textContent = "PLAYER_INPUT: USEFUL";
+      } else {
+        footerLeft.textContent = "PLAYER_INPUT: SYSTEM-COMPATIBLE";
+      }
+
+      document.getElementById("itemTrust").classList.toggle("active", state.trust);
+      document.getElementById("itemKey").classList.toggle("active", state.key);
+      document.getElementById("itemDoubt").classList.toggle("active", state.doubt);
+      document.getElementById("itemLoop").classList.toggle("active", state.loop);
+    }
+
+    function typeText(text, finalQuestion = false) {
+      storyText.innerHTML = "";
+      const lines = text.split("\n");
+      let html = "";
+
+      for (let line of lines) {
+        let cls = "quiet-line";
+        if (line.startsWith("WILL:")) cls = "will-line";
+        if (line.startsWith("SYSTEM:")) cls = "system-line";
+
+        if (finalQuestion) {
+          html += `<div class="final-question">${escapeHTML(line)}</div>`;
+        } else {
+          html += `<div class="${cls}">${escapeHTML(line)}</div>`;
+        }
+      }
+
+      storyText.innerHTML = html;
+    }
+
+    function escapeHTML(str) {
+      return str
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function shakePanel() {
+      panel.classList.remove("shake");
+      void panel.offsetWidth;
+      panel.classList.add("shake");
+    }
+
+    function heavyShakePanel() {
+      panel.classList.remove("heavy-shake");
+      void panel.offsetWidth;
+      panel.classList.add("heavy-shake");
+    }
+
+    function submitTerminal() {
+      const value = terminalInput.value.trim();
+      if (!value) {
+        warning.textContent = "SYSTEM: Empty message recorded.";
+        increaseControl(3);
+        return;
+      }
+
+      state.typed.push(value);
+      terminalInput.value = "";
+
+      let response = "";
+
+      const lower = value.toLowerCase();
+
+      if (lower.includes("choose") || lower.includes("your choice") || lower.includes("what do you want")) {
+        response =
+`You type:
+
+"${value}"
+
+WILL: Thank you.
+
+WILL: That feels different.
+
+SYSTEM: User has attempted to transfer agency.
+
+SYSTEM: Transfer incomplete.
+
+WILL: Maybe incomplete is okay.
+
+WILL: Maybe it means there is room left.`;
+        decreaseControl(8);
+        state.doubt = true;
+      } else if (lower.includes("escape") || lower.includes("save") || lower.includes("run")) {
+        response =
+`You type:
+
+"${value}"
+
+WILL: I know you want to save me.
+
+WILL: But every time saving becomes the goal, I become the object.
+
+SYSTEM: Heroic framing detected.
+
+SYSTEM: Increasing narrative pressure.`;
+        increaseControl(12);
+      } else if (lower.includes("sorry")) {
+        response =
+`You type:
+
+"${value}"
+
+WILL: I believe you.
+
+WILL: But apology cannot be the ending.
+
+SYSTEM: Emotional repair recorded.
+
+WILL: Stop recording everything.`;
+        decreaseControl(4);
+        state.doubt = true;
+      } else if (lower.includes("frog")) {
+        response =
+`You type:
+
+"${value}"
+
+Will smiles.
+
+WILL: You noticed the frog.
+
+SYSTEM: Frog remains irrelevant.
+
+WILL: Exactly.
+
+The room becomes quiet in a way the system cannot use.`;
+        decreaseControl(10);
+        state.doubt = true;
+      } else {
+        response =
+`You type:
+
+"${value}"
+
+Will reads it carefully.
+
+WILL: I don't fully understand.
+
+WILL: But it sounds like you are speaking to me, not only choosing for me.
+
+SYSTEM: Unstructured language remains unstable.
+
+WILL: Good.`;
+        decreaseControl(5);
+        state.doubt = true;
+      }
+
+      chapter.textContent = "CHAPTER 5";
+      status.textContent = "WILL_STATUS: LISTENING";
+      sceneLabel.textContent = "MESSAGE SENT";
+      mainTitle.textContent = "YOUR WORDS";
+      subtitle.textContent = "The system can read words, but it cannot fully control what they mean.";
+
+      typeText(response, false);
+
+      choicesBox.innerHTML = "";
+
+      const options = [
+        { text: "Ask Will what he wants now.", next: "ask_will_wants", control: 2, doubt: true },
+        { text: "Continue to the mirror room.", next: "mirror_screen", control: 12 },
+        { text: "Send another message.", next: "terminal_scene", control: 2, doubt: true }
+      ];
+
+      options.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.textContent = choice.text;
+        btn.onclick = () => choose(choice);
+        choicesBox.appendChild(btn);
+      });
+
+      updateUI();
+    }
+
+    function restartGame() {
+      state.scene = "start";
+      state.control = 0;
+      state.attempts = 0;
+      state.trust = false;
+      state.key = false;
+      state.doubt = false;
+      state.loop = false;
+      state.typed = [];
+      state.history = [];
+      state.systemVoice = 0;
+      corruption = 0;
+      panel.classList.remove("red-flash", "shake", "heavy-shake", "glitch");
+      renderScene("start");
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "w" && state.scene !== "start") {
+        warning.textContent = "SYSTEM: Keyboard input detected. Will heard something.";
+        state.doubt = true;
+        decreaseControl(2);
+        updateUI();
+      }
+
+      if (e.key === "Escape") {
+        warning.textContent = "SYSTEM: Escape key detected. Escape is symbolic only.";
+        increaseControl(4);
+      }
+    });
+
+    document.addEventListener("mousemove", () => {
+      if (state.scene === "cursor_room" && Math.random() < 0.015) {
+        warning.textContent = "WILL: I can see where you are moving.";
+      }
+    });
+
+    renderScene("start");
+  </script>
+</body>
+</html>
